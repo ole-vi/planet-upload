@@ -7,7 +7,7 @@ urlencode() {
     # urlencode <string>
     old_lc_collate=$LC_COLLATE
     LC_COLLATE=C
-    
+
     local length="${#1}"
     for (( i = 0; i < length; i++ )); do
         local c="${1:i:1}"
@@ -80,6 +80,12 @@ upload_apk() {
     resourceName="$1"
     resourceDesc="$2"
     filename="$3"
+    if [ -f "$filename.old" ]; then
+      if cmp -s "$filename" "$filename.old"; then
+        rm -rf "$filename"
+        exit 0
+      fi
+    fi
 
     mkdir -p /etc/planet
     if [ -f "/etc/planet/data-$resourceName" ]; then
@@ -95,5 +101,5 @@ upload_apk() {
     newdata=$(curl -s -X PUT "$link" --data-binary "@$filename" -H 'Content-Type:'"$(mimetype -b "$filename")")
     echo "$newdata" > "/etc/planet/data-$resourceName"
 
-    rm -rf "$filename"
+    mv "$filename" "$filename.old"
 }
